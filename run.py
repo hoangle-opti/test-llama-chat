@@ -128,30 +128,26 @@ async def start_production_server():
 
 
 async def _run_frontend(
-    port: int = DEFAULT_FRONTEND_PORT,
     timeout: int = 5,
 ) -> tuple[Process, int]:
     """
     Start the frontend development server and return its process and port.
 
     Returns:
-        tuple[Process, int]: The frontend process and the port it's running on
+        tuple[Process, int]: The frontend process and the default port (3000)
     """
     # Install dependencies
     _install_frontend_dependencies()
 
-    port = _find_free_port(start_port=DEFAULT_FRONTEND_PORT)
     package_manager = _get_node_package_manager()
     frontend_process = await asyncio.create_subprocess_exec(
         package_manager,
         "run",
         "dev",
-        "-p",
-        str(port),
         cwd=FRONTEND_DIR,
     )
     rich.print(
-        f"\n[bold]Waiting for frontend to start, port: {port}, process id: {frontend_process.pid}[/bold]"
+        f"\n[bold]Waiting for frontend to start, port: {DEFAULT_FRONTEND_PORT}, process id: {frontend_process.pid}[/bold]"
     )
     # Block until the frontend is accessible
     for _ in range(timeout):
@@ -159,11 +155,11 @@ async def _run_frontend(
         # Check if the frontend is accessible (port is open) or frontend_process is running
         if frontend_process.returncode is not None:
             raise RuntimeError("Could not start frontend dev server")
-        if not _is_bindable_port(port):
+        if not _is_bindable_port(DEFAULT_FRONTEND_PORT):
             rich.print(
-                f"\n[bold green]Frontend dev server is running on port {port}[/bold green]"
+                f"\n[bold green]Frontend dev server is running on port {DEFAULT_FRONTEND_PORT}[/bold green]"
             )
-            return frontend_process, port
+            return frontend_process, DEFAULT_FRONTEND_PORT
     raise TimeoutError(f"Frontend dev server failed to start within {timeout} seconds")
 
 
